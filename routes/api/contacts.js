@@ -1,6 +1,6 @@
 const express = require("express");
 const contacts = require("../../models/contacts");
-const { contactDataSchema, idSchema } = require("./schema/shema");
+const { contactDataSchema, updateContactSchema, idSchema } = require("./schema/shema");
 
 const router = express.Router();
 
@@ -49,7 +49,7 @@ router.delete("/:contactId", async (req, res, next) => {
 });
 
 router.put("/:contactId", async (req, res, next) => {
-  const { error: wrongContactData } = contactDataSchema.validate(req.body);
+  const { error: wrongContactData } = updateContactSchema.validate(req.body);
   const { error: wrongContactId } = idSchema.validate(req.params);
   const error = wrongContactData || wrongContactId;
   if (error) {

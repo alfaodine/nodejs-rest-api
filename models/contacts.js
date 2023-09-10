@@ -1,6 +1,6 @@
-const fs = require('fs/promises');
+const fs = require("fs/promises");
 const path = require("path");
-const { nanoid } = require('nanoid');
+const { nanoid } = require("nanoid");
 
 const contactsPath = path.join(__dirname, ".", "contacts.json");
 const listContacts = async () => {
@@ -8,7 +8,7 @@ const listContacts = async () => {
     if (err) throw err;
   });
   return JSON.parse(fileData);
-}
+};
 
 const getContactById = async (contactId) => {
   const fileData = await fs.readFile(contactsPath, (err) => {
@@ -17,8 +17,8 @@ const getContactById = async (contactId) => {
   const contacts = JSON.parse(fileData);
   const requestedContact = contacts.find((contact) => contact.id === contactId);
 
-  return (requestedContact || null) ;
-}
+  return requestedContact || null;
+};
 
 const removeContact = async (contactId) => {
   const fileData = await fs.readFile(contactsPath, (err) => {
@@ -30,10 +30,10 @@ const removeContact = async (contactId) => {
   );
   await fs.writeFile(contactsPath, JSON.stringify(updatedContacts));
   return contacts.length > updatedContacts.length;
-}
+};
 
 const addContact = async (body) => {
-  const {name, email, phone} = body;
+  const { name, email, phone } = body;
   const fileData = await fs.readFile(contactsPath, (err) => {
     if (err) throw err;
   });
@@ -44,33 +44,35 @@ const addContact = async (body) => {
     phone,
     id: nanoid(),
   };
-  const updatedContacts = [...contacts, newContact];
-  await fs.writeFile(contactsPath, JSON.stringify(updatedContacts));
-  return updatedContacts;
-}
+  contacts.push(newContact);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts));
+  return contacts;
+};
 
 const updateContact = async (contactId, body) => {
-  const {name, email, phone} = body;
+  const { name, email, phone } = body;
   const fileData = await fs.readFile(contactsPath, (err) => {
     if (err) throw err;
   });
   const contacts = JSON.parse(fileData);
-  const requestedContact = contacts.find((contact) => contact.id === contactId);
-  if (!requestedContact) return {"message": "Not found"};
+  let isContactFound = false;
+  const updatedContacts = contacts.map((contact) => {
+    if (contact.id === contactId) {
+      isContactFound = true;
+      return {
+        ...contact,
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(phone && { phone }),
+      };
+    }
+    return contact;
+  });
+  if (!isContactFound) return { message: "Not found" };
 
-  const updatedContact = {
-    ...requestedContact,
-    ...(name && { name }),
-    ...(email && { email }),
-    ...(phone && { phone }),
-  };
-  const filteredContacts = contacts.filter(
-    (contact) => contact.id !== contactId
-  );
-  const updatedContacts = [...filteredContacts, updatedContact];
   await fs.writeFile(contactsPath, JSON.stringify(updatedContacts));
   return updatedContacts;
-}
+};
 
 module.exports = {
   listContacts,
@@ -78,4 +80,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+};
