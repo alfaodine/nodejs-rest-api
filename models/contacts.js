@@ -1,13 +1,12 @@
-const fs = require("fs/promises");
-const path = require("path");
 const ContactsModel = require("../db/models/contacts");
 
-const contactsPath = path.join(__dirname, ".", "contacts.json");
-const listContacts = async () => {
-  const fileData = await fs.readFile(contactsPath, (err) => {
-    if (err) throw err;
-  });
-  return JSON.parse(fileData);
+const listContacts = async ({ page, limit, favorite }) => {
+  const skip = (page - 1) * limit;
+  const contactsQuery = ContactsModel.find().skip(skip).limit(limit);
+  if (favorite) {
+    contactsQuery.where("favorite").equals(favorite);
+  }
+  return contactsQuery;
 };
 
 const getContactById = async (contactId) => {

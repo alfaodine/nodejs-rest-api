@@ -1,15 +1,30 @@
 const express = require("express");
 const contacts = require("../../models/contacts");
-const { contactDataSchema, updateContactSchema, idSchema, favoriteSchema } = require("./schema/shema");
+const {
+  contactDataSchema,
+  updateContactSchema,
+  idSchema,
+  favoriteSchema,
+} = require("../../schemas/contacts");
+const auth = require("./middlewares/auth");
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const allContacts = await contacts.listContacts();
-  res.json(allContacts);
+router.get("/", auth, async (req, res, next) => {
+  try {
+    const { page = 1, limit = 0, favorite } = req.query;
+    const allContacts = await contacts.listContacts({
+      page: +page,
+      limit: +limit,
+      favorite
+    });
+    res.json(allContacts);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", auth, async (req, res, next) => {
   const { error } = idSchema.validate(req.params);
   if (error) {
     res.status(400).send(error);
