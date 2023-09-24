@@ -16,7 +16,8 @@ router.get("/", auth, async (req, res, next) => {
     const allContacts = await contacts.listContacts({
       page: +page,
       limit: +limit,
-      favorite
+      favorite,
+      userId: req.user._id
     });
     res.json(allContacts);
   } catch (error) {
@@ -30,7 +31,7 @@ router.get("/:contactId", auth, async (req, res, next) => {
     res.status(400).send(error);
     return;
   }
-  const constact = await contacts.getContactById(req.params?.contactId);
+  const constact = await contacts.getContactById(req.params?.contactId, req.user._id);
   if (constact) {
     res.json(constact);
   } else {
@@ -38,19 +39,19 @@ router.get("/:contactId", auth, async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", auth, async (req, res, next) => {
   const { error } = contactDataSchema.validate(req.body);
   if (error) {
     res.status(400).send(error);
     return;
   }
-  const updatedContacts = await contacts.addContact(req.body);
+  const updatedContacts = await contacts.addContact(req.body, req.user._id);
   res.status(201);
   res.json(updatedContacts);
 });
 
-router.delete("/:contactId", async (req, res, next) => {
-  const { error } = idSchema.validate(req.params);
+router.delete("/:contactId", auth, async (req, res, next) => {
+  const { error } = idSchema.validate(req.params, req.user._id);
   if (error) {
     res.status(400).send(error);
     return;
@@ -63,7 +64,7 @@ router.delete("/:contactId", async (req, res, next) => {
   }
 });
 
-router.put("/:contactId", async (req, res, next) => {
+router.put("/:contactId", auth, async (req, res, next) => {
   const { error: wrongContactData } = updateContactSchema.validate(req.body);
   const { error: wrongContactId } = idSchema.validate(req.params);
   const error = wrongContactData || wrongContactId;
@@ -77,12 +78,13 @@ router.put("/:contactId", async (req, res, next) => {
   }
   const updatedContacts = await contacts.updateContact(
     req.params?.contactId,
-    req.body
+    req.body,
+    req.user._id
   );
   res.json(updatedContacts);
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", auth, async (req, res, next) => {
   const { error: wrongContactData } = favoriteSchema.validate(req.body);
   const { error: wrongContactId } = idSchema.validate(req.params);
   const error = wrongContactData || wrongContactId;
@@ -96,7 +98,8 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
   }
   const updatedContacts = await contacts.updateContact(
     req.params?.contactId,
-    req.body
+    req.body,
+    req.user._id
   );
   res.json(updatedContacts);
 });
