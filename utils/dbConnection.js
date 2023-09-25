@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+const { MONGO_DB_USER, MONGO_DB_PASSWORD, MONGO_DB_HOST, MONGO_DB_DATABASE } = require("../contants/env");
 
-dotenv.config();
-
-const { MONGO_DB_USER, MONGO_DB_PASSWORD, MONGO_DB_HOST, MONGO_DB_DATABASE } =
-  process.env;
 
 const setUpDbConnection = async () => {
   try {
