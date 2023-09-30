@@ -1,7 +1,8 @@
 const express = require("express");
 const { registrationSchema } = require("../../schemas/users");
-const { registerUser, loginUser, logoutUser, getCurrentUser } = require("../../models/users");
+const { registerUser, loginUser, logoutUser, getCurrentUser, updateUsersAvatar } = require("../../models/users");
 const auth = require("./middlewares/auth");
+const upload = require("./middlewares/uploadFile");
 
 const router = express.Router();
 
@@ -48,6 +49,16 @@ router.post("/logout", auth, async (req, res, next) => {
 router.post("/current", auth, async (req, res, next) => {
     try {
       const currentUser = await getCurrentUser(req.user);
+      res.status(200);
+      res.json(currentUser);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  });
+
+  router.patch("/avatars", auth,  upload.single('avatar'), async (req, res, next) => {
+    try {
+      const currentUser = await updateUsersAvatar(req.user, req.file);
       res.status(200);
       res.json(currentUser);
     } catch (error) {

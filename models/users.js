@@ -1,9 +1,13 @@
-const { saltRounds, ERROR_TYPES } = require("../contants/constants");
+const { saltRounds, ERROR_TYPES, TEMP_DIR, UPLOAD_DIR } = require("../contants/constants");
 const UsersModel = require("../db/models/users");
 const bcrypt = require("bcrypt");
 const createError = require("../utils/createError");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../contants/env");
+const gravatar = require("gravatar");
+const Jimp = require("jimp");
+const path = require("path");
+const { getFileURL } = require("../utils/getFileUrl");
 
 const registerUser = async (body) => {
   const { email, password } = body;
@@ -11,6 +15,10 @@ const registerUser = async (body) => {
   const userData = {
     email,
     password: passwordHash,
+    avatarURL: gravatar.url(email, {
+      s: "200",
+      r: "pg",
+    }),
   };
   const user = new UsersModel(userData);
   try {
@@ -60,7 +68,7 @@ const logoutUser = async ({ _id }) => {
     _id,
     {
       $set: {
-        token: ''
+        token: "",
       },
     },
     { returnOriginal: false }
@@ -74,14 +82,31 @@ const getUsertById = async (userId) => {
 };
 
 const getCurrentUser = async ({ _id }) => {
-    const currentUser = await UsersModel.findById(_id);
-    return { email: currentUser.email, subscription: currentUser.subscription };
-  };
+  const currentUser = await UsersModel.findById(_id);
+  return { email: currentUser.email, subscription: currentUser.subscription };
+};
+
+const updateUsersAvatar = async ({ _id }, file) => {
+
+    const image = await Jimp.read(path.join(TEMP_DIR, file?.filename));
+    await image.resize(256, 256).writeAsync(path.join(UPLOAD_DIR, file?.filename));
+      const updatedContact = await UsersModel.findOneAndUpdate(
+    { _id },
+    {
+      $set: {
+        avatarURL: getFileURL(file?.filename),
+      },
+    },
+    { returnOriginal: false }
+  );
+  return updatedContact
+};
 
 module.exports = {
   registerUser,
   loginUser,
   getUsertById,
   logoutUser,
-  getCurrentUser
+  getCurrentUser,
+  updateUsersAvatar,
 };
