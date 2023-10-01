@@ -1,3 +1,4 @@
+const path = require("path");
 const saltRounds = 10;
 
 const ERROR_TYPES = {
@@ -8,6 +9,7 @@ const ERROR_TYPES = {
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
 };
 
-module.exports = ERROR_TYPES;
-
-module.exports = { saltRounds, ERROR_TYPES };
+const STATIC_DIR = path.join(process.cwd(), "public");
+const UPLOAD_DIR = path.join(process.cwd(), "public", "avatars");
+const TEMP_DIR = path.join(process.cwd(), "tmp");
+module.exports = { saltRounds, ERROR_TYPES, UPLOAD_DIR, STATIC_DIR, TEMP_DIR };
